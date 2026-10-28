@@ -1,0 +1,330 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Result Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        header {
+            background: #1d4ed8;
+            color: white;
+            padding: 25px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #dbeafe;
+            color: #1e3a8a;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        .grade {
+            font-weight: bold;
+            color: #15803d;
+        }
+
+        .summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            flex: 1 1 180px;
+            text-align: center;
+            box-shadow: 0 2px 5px #00000010;
+        }
+
+        .card h3 {
+            color: #1d4ed8;
+            margin: 0 0 8px;
+        }
+
+        #message {
+            text-align: center;
+            padding: 20px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            header {
+                padding: 18px 10px;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .summary {
+                flex-direction: column;
+            }
+
+            .card {
+                flex: 1 1 auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <header>
+            <h1>Student Result Dashboard</h1>
+            <p>View and search student academic records</p>
+        </header>
+
+        <section class="summary">
+            <div class="card">
+                <h3>Total Students</h3>
+                <p id="totalStudents">0</p>
+            </div>
+
+            <div class="card">
+                <h3>Class Average</h3>
+                <p id="classAverage">0%</p>
+            </div>
+
+            <div class="card">
+                <h3>Students Passed</h3>
+                <p id="passedStudents">0</p>
+            </div>
+        </section>
+
+        <section class="search-box">
+            <h2>Search Student</h2>
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="Enter student name or roll number..."
+                aria-label="Search by student name or roll number"
+            >
+        </section>
+
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll No.</th>
+                        <th>Name</th>
+                        <th>Marks</th>
+                        <th>Total</th>
+                        <th>Average</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTable"></tbody>
+            </table>
+            <p id="message" role="status"></p>
+        </section>
+
+        <footer>
+            <p>Student Result Management System</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Array of student objects
+        const students = [
+            {
+                rollNo: "101",
+                name: "Arun",
+                marks: [85, 90, 78, 88, 79]
+            },
+            {
+                rollNo: "102",
+                name: "Priya",
+                marks: [92, 95, 89, 94, 96]
+            },
+            {
+                rollNo: "103",
+                name: "Kumar",
+                marks: [65, 70, 68, 72, 60]
+            },
+            {
+                rollNo: "104",
+                name: "Divya",
+                marks: [45, 55, 48, 50, 52]
+            },
+            {
+                rollNo: "105",
+                name: "Rahul",
+                marks: [30, 35, 28, 40, 32]
+            }
+        ];
+
+        // Calculate total marks
+        function getTotal(marks) {
+            return marks.reduce((sum, mark) => sum + mark, 0);
+        }
+
+        // Calculate average percentage
+        function getAverage(marks) {
+            return getTotal(marks) / marks.length;
+        }
+
+        // Calculate grade
+        function getGrade(average) {
+            if (average >= 90) return "A+";
+            if (average >= 80) return "A";
+            if (average >= 70) return "B";
+            if (average >= 60) return "C";
+            if (average >= 50) return "D";
+            if (average >= 40) return "E";
+            return "F";
+        }
+
+        // Display student records dynamically
+        function displayStudents(list) {
+            const table = document.getElementById("studentTable");
+            const message = document.getElementById("message");
+
+            table.replaceChildren();
+
+            document.getElementById("totalStudents").textContent =
+                list.length;
+
+            const classAverage = list.length
+                ? list.reduce(
+                    (sum, student) =>
+                        sum + getAverage(student.marks), 0
+                  ) / list.length
+                : 0;
+
+            document.getElementById("classAverage").textContent =
+                classAverage.toFixed(2) + "%";
+
+            const passed = list.filter(
+                student => student.marks.every(mark => mark >= 35)
+            ).length;
+
+            document.getElementById("passedStudents").textContent =
+                passed;
+
+            if (list.length === 0) {
+                message.textContent = "No student records found.";
+                return;
+            }
+
+            message.textContent = "";
+
+            list.forEach(student => {
+                const total = getTotal(student.marks);
+                const average = getAverage(student.marks);
+                const grade = getGrade(average);
+
+                const row = document.createElement("tr");
+
+                const values = [
+                    student.rollNo,
+                    student.name,
+                    student.marks.join(", "),
+                    total + " / 500",
+                    average.toFixed(2) + "%",
+                    grade
+                ];
+
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+
+                    if (index === 5) {
+                        cell.className = "grade";
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        // Search by student name or roll number
+        document.getElementById("searchInput")
+            .addEventListener("input", function () {
+                const query = this.value.trim().toLowerCase();
+
+                const filteredStudents = students.filter(student =>
+                    student.name.toLowerCase().includes(query) ||
+                    student.rollNo.toLowerCase().includes(query)
+                );
+
+                displayStudents(filteredStudents);
+            });
+
+        // Display all records initially
+        displayStudents(students);
+    </script>
+</body>
+</html>
